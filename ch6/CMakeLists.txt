@@ -7,4 +7,4 @@ set(SRC_LIST "6.5.c")
 add_executable(exc ${SRC_LIST})
 
 # 添加链接库
-target_link_libraries(exc ErrFunc)
+target_link_libraries(exc apueLib)

@@ -1,7 +1,8 @@
 #! /bin/sh
 
+mkdir build
 cd ./build
-rm -r *
+# rm -r *
 cmake ..
 # 检查cmake是否错误
 if [ $? -eq 0 ]

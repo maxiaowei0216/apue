@@ -7,4 +7,4 @@ project (APUE)
 # 添加头文件路径
 include_directories("${PROJECT_SOURCE_DIR}/apue/include")
 add_subdirectory(apue)
-add_subdirectory(ch8 bin)
+add_subdirectory(ch9 bin)

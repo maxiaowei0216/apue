@@ -4,6 +4,14 @@
 #define SIG2STR_MAX 64
 #define SIG_MAX     64
 
+#if 0
+int sig2str(int signo, char *str)
+{
+    strcpy(str, strsignal(signo));
+
+    return 0;
+}
+#else
 // 暂时只定义了6个，其余的添加即可
 char *sig_str[SIG_MAX] = {"HUP","INT","QUIT","ILL","TRAP","ABRT"};
 
@@ -21,18 +29,17 @@ int sig2str(int signo, char *str)
 
     return 0;
 }
+#endif
 
 int main()
 {
-    int signo = 0;
     char buf[SIG2STR_MAX];
-
+    int signo = 0;
     scanf("%d", &signo);
 
-    while (signo != -1)
-    {
+    while(signo != -1) {
         if(sig2str(signo, buf) < 0)
-            err_msg("sig2str error");
+            err_sys("sig2str error");
         else
             printf("%s\n", buf);
 

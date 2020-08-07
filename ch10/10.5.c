@@ -1,20 +1,23 @@
 #include "apue.h"
 #include <time.h>
-#include <stdbool.h>
 
 typedef void Timerfunc(void);
 
 typedef struct my_timer
 {
+    unsigned int id;
     int rest_time;    // 到期时间
     Timerfunc *func;  // 定时器处理函数
 
     struct my_timer *next;
 } my_timer_t;
 
+static unsigned int cur_id = 0;
 static my_timer_t head; /* 头节点，不使用 */
 static time_t last_time; /* 上次更新链表时间的时间 */
+static int is_continue;
 
+#if 0
 static void pr_list()
 {
     my_timer_t *p = head.next;
@@ -25,6 +28,7 @@ static void pr_list()
     }
     printf("\n");
 }
+#endif
 
 // 更新各个节点的到期时间
 static void update_timer()
@@ -57,6 +61,7 @@ static void my_sigalrm(int no)
     p = head.next;
     p->func();    /*执行对应的任务*/
     head.next = p->next;    /* 删去超时节点 */
+    // printf("ALARM\n");
 }
 
 // 插入到链表适当位置
@@ -104,22 +109,45 @@ static int insert_timer(my_timer_t *timer)
     return -1;   /* 应该不会到这 */
 }
 
-int my_timer_set(int time, Timerfunc *func)
+// 返回的是定时器ID，如果为0则表示出错
+unsigned int my_timer_set(int time, Timerfunc *func)
 {
     // 申请空间
     my_timer_t *timer = (my_timer_t *)malloc(sizeof(my_timer_t));
     if(timer == NULL)
-        return -1;
+        return 0;
 
     // 设定参数
     timer->rest_time = time;
     timer->func = func;
     timer->next = NULL;
+    timer->id = ++cur_id;   /* 分配ID */
 
     // 插入链表中
-    int ret = insert_timer(timer);
-    pr_list();
-    return ret;
+    if(insert_timer(timer) < 0) {
+        err_sys("my_timer_set error ");
+    }
+    // pr_list();
+    return timer->id;
+}
+
+int my_timer_delete(unsigned int id)
+{
+    my_timer_t *p, *prev;
+    p = head.next;
+    prev = &head;
+
+    while(p != NULL) {
+        if(p->id == id) {   /* 找到该定时器 */
+            prev->next = p->next;
+            free(p);
+            return 0;
+        }
+        prev = p;
+        p = p->next;
+    }
+    // 到这说明没有找到定时器
+    return -1;
 }
 
 void my_timer_init()
@@ -139,17 +167,31 @@ void ti_2()
 void ti_3()
 {
     printf("timer3:%ld\n",time(NULL));
+    is_continue = 0;
 }
 
 int main()
 {
+    unsigned int id1,id2,id3;
+
     my_timer_init();
 
-    my_timer_set(4, ti_1);
-    my_timer_set(2, ti_2);
-    my_timer_set(6, ti_3);
+    id1 = my_timer_set(4, ti_1);
+    printf("timer1(4) set,id:%d\n", id1);
+    id2 = my_timer_set(2, ti_2);
+    printf("timer2(2) set,id:%d\n", id2);
+    id3 = my_timer_set(6, ti_3);
+    printf("timer3(6) set,id:%d\n", id3);
 
-    while(1)
+
+    if (my_timer_delete(id1) == 0)
+        printf("timer1 delete OK\n");
+    else
+        printf("timer1 delete NG\n");
+    // pr_list();
+
+    is_continue = 1;
+    while(is_continue)
     {
         ;
     }
